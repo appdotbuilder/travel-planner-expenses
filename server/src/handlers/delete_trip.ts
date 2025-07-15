@@ -1,10 +1,21 @@
 
+import { db } from '../db';
+import { tripsTable } from '../db/schema';
 import { type DeleteInput } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const deleteTrip = async (input: DeleteInput): Promise<{ success: boolean }> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting a trip and all its associated expenses from the database.
-    // Should cascade delete all expenses for this trip due to foreign key constraint.
-    // Should return success status.
-    return { success: true };
+  try {
+    // Delete the trip - expenses will be cascade deleted due to foreign key constraint
+    const result = await db.delete(tripsTable)
+      .where(eq(tripsTable.id, input.id))
+      .returning()
+      .execute();
+
+    // Check if any rows were deleted
+    return { success: result.length > 0 };
+  } catch (error) {
+    console.error('Trip deletion failed:', error);
+    throw error;
+  }
 };
